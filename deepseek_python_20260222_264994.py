@@ -4681,134 +4681,6 @@ def callback_handler(call):
                 bot.answer_callback_query(call.id)
     
     # Рулетка
-    elif data.startswith('roulette_type_'):
-        game = user.get('game')
-        if game and game['type'] == 'roulette' and game.get('stage') == 'waiting_bet':
-            bet = game['bet']
-            bet_type = data.replace('roulette_type_', '')
-            if bet_type in ['red', 'black', 'zero']:
-                number, color = roulette_spin()
-                if bet_type == 'red':
-                    win, mult = roulette_result(bet, 'color', 'red', number, color)
-                elif bet_type == 'black':
-                    win, mult = roulette_result(bet, 'color', 'black', number, color)
-                else:
-                    win, mult = roulette_result(bet, 'straight', 0, number, color)
-                if win > 0:
-                    win = int(win * get_global_multiplier(user_id) * get_event_multiplier())
-                    user['balance'] += win
-                    user['total_wins'] = user.get('total_wins', 0) + 1
-                    user['win_streak'] = user.get('win_streak', 0) + 1
-                    update_quest_progress(user_id, 'win', 1)
-                    update_quest_progress(user_id, 'earn', win // 1000)
-                    update_event_stats(user_id, 'roulette', win)
-                    result_text = f"🎉 Выпало {number} {get_color_emoji(color)}! Ты выиграл {win} кредиксов"
-                    if mult > 0:
-                        result_text += f" (x{mult})"
-                    add_game_history(user_id, '🎰 Рулетка', bet, win, 'win')
-                else:
-                    result_text = f"❌ Выпало {number} {get_color_emoji(color)}. Ты проиграл {bet} кредиксов."
-                    user['total_losses'] = user.get('total_losses', 0) + 1
-                    user['win_streak'] = 0
-                    user['total_lost'] = user.get('total_lost', 0) + bet
-                    update_event_stats(user_id, 'roulette', 0)
-                    add_game_history(user_id, '🎰 Рулетка', bet, 0, 'lose')
-                user['max_win_streak'] = max(user.get('max_win_streak', 0), user['win_streak'])
-                save_data()
-                result_text += f"\n💰 Новый баланс: {user['balance']}"
-                bot.edit_message_text(result_text, call.message.chat.id, call.message.message_id)
-                clear_game(user_id)
-                bot.answer_callback_query(call.id)
-            elif bet_type in ['even', 'odd']:
-                number, color = roulette_spin()
-                win, mult = roulette_result(bet, 'even_odd', bet_type, number, color)
-                if win > 0:
-                    win = int(win * get_global_multiplier(user_id) * get_event_multiplier())
-                    user['balance'] += win
-                    user['total_wins'] = user.get('total_wins', 0) + 1
-                    user['win_streak'] = user.get('win_streak', 0) + 1
-                    update_quest_progress(user_id, 'win', 1)
-                    update_quest_progress(user_id, 'earn', win // 1000)
-                    update_event_stats(user_id, 'roulette', win)
-                    result_text = f"🎉 Выпало {number} {get_color_emoji(color)}! Ты выиграл {win} кредиксов (x{mult})"
-                    add_game_history(user_id, '🎰 Рулетка', bet, win, 'win')
-                else:
-                    result_text = f"❌ Выпало {number} {get_color_emoji(color)}. Ты проиграл {bet} кредиксов."
-                    user['total_losses'] = user.get('total_losses', 0) + 1
-                    user['win_streak'] = 0
-                    user['total_lost'] = user.get('total_lost', 0) + bet
-                    update_event_stats(user_id, 'roulette', 0)
-                    add_game_history(user_id, '🎰 Рулетка', bet, 0, 'lose')
-                user['max_win_streak'] = max(user.get('max_win_streak', 0), user['win_streak'])
-                save_data()
-                result_text += f"\n💰 Новый баланс: {user['balance']}"
-                bot.edit_message_text(result_text, call.message.chat.id, call.message.message_id)
-                clear_game(user_id)
-                bot.answer_callback_query(call.id)
-            elif bet_type in ['1-18', '19-36']:
-                number, color = roulette_spin()
-                win, mult = roulette_result(bet, 'range', bet_type, number, color)
-                if win > 0:
-                    win = int(win * get_global_multiplier(user_id) * get_event_multiplier())
-                    user['balance'] += win
-                    user['total_wins'] = user.get('total_wins', 0) + 1
-                    user['win_streak'] = user.get('win_streak', 0) + 1
-                    update_quest_progress(user_id, 'win', 1)
-                    update_quest_progress(user_id, 'earn', win // 1000)
-                    update_event_stats(user_id, 'roulette', win)
-                    result_text = f"🎉 Выпало {number} {get_color_emoji(color)}! Ты выиграл {win} кредиксов (x{mult})"
-                    add_game_history(user_id, '🎰 Рулетка', bet, win, 'win')
-                else:
-                    result_text = f"❌ Выпало {number} {get_color_emoji(color)}. Ты проиграл {bet} кредиксов."
-                    user['total_losses'] = user.get('total_losses', 0) + 1
-                    user['win_streak'] = 0
-                    user['total_lost'] = user.get('total_lost', 0) + bet
-                    update_event_stats(user_id, 'roulette', 0)
-                    add_game_history(user_id, '🎰 Рулетка', bet, 0, 'lose')
-                user['max_win_streak'] = max(user.get('max_win_streak', 0), user['win_streak'])
-                save_data()
-                result_text += f"\n💰 Новый баланс: {user['balance']}"
-                bot.edit_message_text(result_text, call.message.chat.id, call.message.message_id)
-                clear_game(user_id)
-                bot.answer_callback_query(call.id)
-            elif bet_type in ['1st', '2nd', '3rd']:
-                number, color = roulette_spin()
-                win, mult = roulette_result(bet, 'dozen', bet_type, number, color)
-                if win > 0:
-                    win = int(win * get_global_multiplier(user_id) * get_event_multiplier())
-                    user['balance'] += win
-                    user['total_wins'] = user.get('total_wins', 0) + 1
-                    user['win_streak'] = user.get('win_streak', 0) + 1
-                    update_quest_progress(user_id, 'win', 1)
-                    update_quest_progress(user_id, 'earn', win // 1000)
-                    update_event_stats(user_id, 'roulette', win)
-                    result_text = f"🎉 Выпало {number} {get_color_emoji(color)}! Ты выиграл {win} кредиксов (x{mult})"
-                    add_game_history(user_id, '🎰 Рулетка', bet, win, 'win')
-                else:
-                    result_text = f"❌ Выпало {number} {get_color_emoji(color)}. Ты проиграл {bet} кредиксов."
-                    user['total_losses'] = user.get('total_losses', 0) + 1
-                    user['win_streak'] = 0
-                    user['total_lost'] = user.get('total_lost', 0) + bet
-                    update_event_stats(user_id, 'roulette', 0)
-                    add_game_history(user_id, '🎰 Рулетка', bet, 0, 'lose')
-                user['max_win_streak'] = max(user.get('max_win_streak', 0), user['win_streak'])
-                save_data()
-                result_text += f"\n💰 Новый баланс: {user['balance']}"
-                bot.edit_message_text(result_text, call.message.chat.id, call.message.message_id)
-                clear_game(user_id)
-                bot.answer_callback_query(call.id)
-            elif bet_type == 'straight':
-                markup = types.InlineKeyboardMarkup(row_width=6)
-                buttons = []
-                for num in range(0, 37):
-                    buttons.append(types.InlineKeyboardButton(str(num), callback_data=f"roulette_number_{num}"))
-                rows = [buttons[i:i+6] for i in range(0, len(buttons), 6)]
-                for row in rows:
-                    markup.add(*row)
-                bot.edit_message_text("🎰 Выбери число от 0 до 36:", call.message.chat.id, call.message.message_id, reply_markup=markup)
-                user['game']['stage'] = 'choosing_roulette_number'
-                save_data()
-                bot.answer_callback_query(call.id)
     elif data.startswith('roulette_number_'):
         game = user.get('game')
         if game and game['type'] == 'roulette' and game.get('stage') == 'choosing_roulette_number':
@@ -4817,4 +4689,30 @@ def callback_handler(call):
             number, color = roulette_spin()
             win, mult = roulette_result(bet, 'straight', chosen_number, number, color)
             if win > 0:
-                win = int(win * get_global_multiplier(user_id) * get_event_multipl
+                win = int(win * get_global_multiplier(user_id) * get_event_multiplier())
+                user['balance'] += win
+                user['total_wins'] = user.get('total_wins', 0) + 1
+                user['win_streak'] = user.get('win_streak', 0) + 1
+                update_quest_progress(user_id, 'win', 1)
+                update_quest_progress(user_id, 'earn', win // 1000)
+                update_event_stats(user_id, 'roulette', win)
+                result_text = f"🎉 Выпало {number} {get_color_emoji(color)}! Ты выиграл {win} кредиксов"
+                if mult > 0:
+                    result_text += f" (x{mult})"
+                add_game_history(user_id, '🎰 Рулетка', bet, win, 'win')
+            else:
+                result_text = f"❌ Выпало {number} {get_color_emoji(color)}. Ты проиграл {bet} кредиксов."
+                user['total_losses'] = user.get('total_losses', 0) + 1
+                user['win_streak'] = 0
+                user['total_lost'] = user.get('total_lost', 0) + bet
+                update_event_stats(user_id, 'roulette', 0)
+                add_game_history(user_id, '🎰 Рулетка', bet, 0, 'lose')
+            user['max_win_streak'] = max(user.get('max_win_streak', 0), user['win_streak'])
+            save_data()
+            result_text += f"\n💰 Новый баланс: {user['balance']}"
+            bot.edit_message_text(result_text, call.message.chat.id, call.message.message_id)
+            clear_game(user_id)
+            bot.answer_callback_query(call.id)
+        
+        
+                win = int(win * get_global_multiplier(user_id) * get_event_multiplier())
